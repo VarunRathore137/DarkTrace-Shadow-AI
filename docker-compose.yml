@@ -11,3 +11,17 @@ services:
       - .:/app
     environment:
       - ENV=development
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "8501:8501"
+    volumes:
+      - .:/app
+    environment:
+      - API_URL=http://api:8000
+    depends_on:
+      - api
+
