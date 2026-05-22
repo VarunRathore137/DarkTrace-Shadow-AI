@@ -545,21 +545,21 @@ pytest tests/test_detection.py       # Detection algorithm testing
 
 ## 🛣️ Roadmap
 
-### Version 2.0 (Q2 2024)
+### Version 2.0 (Q2 2026)
 - [ ] Multi-language support (Spanish, Portuguese, Russian)
 - [ ] Advanced graph neural network architectures
 - [ ] Real-time streaming dashboard
 - [ ] Mobile app for field investigators
 - [ ] Enhanced explainability features
 
-### Version 2.1 (Q3 2024)  
+### Version 2.1 (Q3 2027)  
 - [ ] Integration with popular messaging platforms
 - [ ] Automated report generation
 - [ ] Advanced temporal pattern analysis
 - [ ] Federated learning capabilities
 - [ ] Blockchain transaction analysis
 
-### Version 3.0 (Q4 2024)
+### Version 3.0 (Q4 2027)
 - [ ] Computer vision for image analysis
 - [ ] Voice pattern recognition
 - [ ] Advanced network topology analysis
