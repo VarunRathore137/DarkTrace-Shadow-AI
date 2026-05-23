@@ -204,7 +204,8 @@ if analyze_button and message:
     else:
         st.session_state.analysis_count += 1
         try:
-            response = requests.post(f"{API_URL}/predict", json={"message": message})
+            # Add explain=true to request SHAP values
+            response = requests.post(f"{API_URL}/predict?explain=true", json={"message": message})
             if response.status_code == 200:
                 result = response.json()
                 prediction = result["prediction"]
@@ -258,6 +259,56 @@ if analyze_button and message:
                     st.markdown("- Consider context and sender history")
                 else:
                     st.success("✅ **LOW RISK**: This message appears to be normal communication.")
+                    
+                st.markdown("---")
+                st.markdown("### 🔬 Advanced Analytics")
+                tab1, tab2, tab3 = st.tabs(["🔍 SHAP Explanation", "🧠 Similar Messages (RAG)", "🕸️ Mock Graph Analytics"])
+                
+                with tab1:
+                    if "shap_values" in result and "shap_base_value" in result:
+                        shap_vals = result["shap_values"]
+                        feature_names = list(features.keys())
+                        if len(shap_vals) == len(feature_names):
+                            shap_df = pd.DataFrame({"Feature": feature_names, "SHAP Value": shap_vals})
+                            shap_df["Absolute Impact"] = shap_df["SHAP Value"].abs()
+                            shap_df = shap_df.sort_values(by="Absolute Impact", ascending=False).head(10)
+                            st.bar_chart(shap_df.set_index("Feature")["SHAP Value"])
+                        else:
+                            st.warning("SHAP values dimension mismatch.")
+                    else:
+                        st.info("SHAP explanations not available for this prediction.")
+                        
+                with tab2:
+                    try:
+                        search_res = requests.post(f"{API_URL}/semantic_search", json={"query": message, "limit": 3})
+                        if search_res.status_code == 200:
+                            similar_msgs = search_res.json().get("results", [])
+                            if similar_msgs:
+                                for idx, sm in enumerate(similar_msgs):
+                                    with st.expander(f"Match {idx+1} (Risk: {sm.get('risk_level', 'Unknown')})"):
+                                        st.write(sm.get("message_text", ""))
+                                        st.caption(f"Platform: {sm.get('platform', 'Unknown')} | Score: {sm.get('similarity_score', 0):.2f}")
+                            else:
+                                st.info("No similar messages found.")
+                        else:
+                            st.warning("Semantic search unavailable.")
+                    except Exception as e:
+                        st.warning("Could not retrieve similar messages.")
+                        
+                with tab3:
+                    try:
+                        # Pass a mock user_id for the current user
+                        graph_res = requests.post(f"{API_URL}/network_analysis", json={"user_id": "current_user"})
+                        if graph_res.status_code == 200:
+                            graph_data = graph_res.json()
+                            st.write(f"**Nodes:** {graph_data['metrics']['node_count']} | **Edges:** {graph_data['metrics']['edge_count']}")
+                            nodes = sorted(graph_data['nodes'], key=lambda x: x.get('pagerank', 0), reverse=True)
+                            st.write("Top entities in ego-network (by PageRank):")
+                            st.dataframe(pd.DataFrame(nodes).head(3))
+                        else:
+                            st.warning("Graph analytics unavailable.")
+                    except Exception as e:
+                        st.warning("Could not retrieve graph analytics.")
                     
             else:
                 st.error(f"Error from API (Status {response.status_code}): {response.text}")
