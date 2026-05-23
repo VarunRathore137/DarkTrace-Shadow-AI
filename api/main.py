@@ -9,6 +9,8 @@ import numpy as np
 from pathlib import Path
 import chromadb
 from sentence_transformers import SentenceTransformer
+import networkx as nx
+import random
 
 # Add parent directory to path to import create_final_model
 ROOT_DIR = Path(__file__).parent.parent
@@ -59,6 +61,15 @@ class SemanticSearchInput(BaseModel):
     limit: Optional[int] = 5
     platform: Optional[str] = None
     risk_level: Optional[str] = None
+
+class Interaction(BaseModel):
+    sender_id: str
+    receiver_id: str
+    weight: Optional[int] = 1
+
+class NetworkAnalysisInput(BaseModel):
+    user_id: str
+    interactions: Optional[List[Interaction]] = None
 
 @app.get("/health")
 def health():
@@ -200,3 +211,56 @@ def semantic_search(input_data: SemanticSearchInput):
         return {"results": formatted_results}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/network_analysis")
+def network_analysis(input_data: NetworkAnalysisInput):
+    # Mock Graph Analytics: Ego-network around user_id using sender-receiver interactions. 
+    # Edge weights based on frequency. Small graph (5-10 nodes max).
+    G = nx.DiGraph()
+    
+    if input_data.interactions and len(input_data.interactions) > 0:
+        # Use provided interactions (limited to 10 for performance)
+        for inter in input_data.interactions[:10]:
+            G.add_edge(inter.sender_id, inter.receiver_id, weight=inter.weight)
+    else:
+        # Generate mock ego-network
+        G.add_node(input_data.user_id)
+        # Add 4-9 mock connected nodes
+        num_neighbors = random.randint(4, 9)
+        for i in range(num_neighbors):
+            neighbor_id = f"user_{random.randint(1000, 9999)}"
+            weight = random.randint(1, 10)
+            if random.random() > 0.5:
+                G.add_edge(input_data.user_id, neighbor_id, weight=weight)
+            else:
+                G.add_edge(neighbor_id, input_data.user_id, weight=weight)
+                
+    # Calculate PageRank and Degree Centrality
+    pagerank = nx.pagerank(G, weight='weight')
+    degree = nx.degree_centrality(G)
+    
+    # Format output
+    nodes = []
+    for node in G.nodes():
+        nodes.append({
+            "id": node,
+            "pagerank": pagerank.get(node, 0.0),
+            "degree_centrality": degree.get(node, 0.0)
+        })
+        
+    edges = []
+    for u, v, data in G.edges(data=True):
+        edges.append({
+            "source": u,
+            "target": v,
+            "weight": data.get("weight", 1)
+        })
+        
+    return {
+        "nodes": nodes,
+        "edges": edges,
+        "metrics": {
+            "node_count": G.number_of_nodes(),
+            "edge_count": G.number_of_edges()
+        }
+    }

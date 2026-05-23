@@ -17,3 +17,4 @@ chromadb
 sentence-transformers
 plotly>=5.17.0
 lightgbm>=4.0.0
+networkx>=3.0

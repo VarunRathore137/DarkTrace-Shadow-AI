@@ -42,3 +42,21 @@ def test_semantic_search_with_filters():
     if data["results"]:
         assert data["results"][0]["platform"] == "Telegram"
         assert data["results"][0]["risk_level"] == "high"
+
+def test_network_analysis_endpoint():
+    response = client.post("/network_analysis", json={
+        "user_id": "test_user_1",
+        "interactions": [
+            {"sender_id": "test_user_1", "receiver_id": "test_user_2", "weight": 5},
+            {"sender_id": "test_user_2", "receiver_id": "test_user_3", "weight": 2}
+        ]
+    })
+    assert response.status_code == 200
+    data = response.json()
+    assert "nodes" in data
+    assert "edges" in data
+    assert "metrics" in data
+    assert len(data["nodes"]) >= 3
+    assert len(data["edges"]) == 2
+    assert "pagerank" in data["nodes"][0]
+    assert "degree_centrality" in data["nodes"][0]
