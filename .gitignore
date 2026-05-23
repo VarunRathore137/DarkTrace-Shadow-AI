@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+.pytest_cache/
+chroma_data/
+*.pyc
+.DS_Store
+ingest_checkpoint.json

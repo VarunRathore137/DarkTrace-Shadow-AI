@@ -112,14 +112,14 @@ def create_better_features(text, emoji_dict, slang_dict):
     # Crypto/payment patterns
     payment_patterns = [
         r'crypto', r'btc', r'bitcoin', r'cash', r'venmo', r'paypal', 
-        r'zelle', r'cash app', r'venmo'
+        r'zelle', r'cash app', r'venmo', r'zeecash'
     ]
     features['has_payment'] = any(re.search(pattern, text_lower) for pattern in payment_patterns)
     
     # Time patterns
     time_patterns = [
         r'tonight', r'tomorrow', r'weekend', r'friday', r'saturday', 
-        r'after hours', r'late night', r'midnight'
+        r'after hours', r'late night', r'midnight', r'sun down'
     ]
     features['has_time'] = any(re.search(pattern, text_lower) for pattern in time_patterns)
     
