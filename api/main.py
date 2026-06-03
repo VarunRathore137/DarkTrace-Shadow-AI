@@ -11,6 +11,10 @@ import chromadb
 from sentence_transformers import SentenceTransformer
 import networkx as nx
 import random
+import time
+import platform
+import os
+import psutil
 
 # Add parent directory to path to import create_final_model
 ROOT_DIR = Path(__file__).parent.parent
@@ -25,27 +29,32 @@ try:
     xgb_pipeline = joblib.load(artifacts_dir / "xgboost_pipeline.joblib")
     preprocessor = joblib.load(artifacts_dir / "xgboost_preprocessor.joblib")
     classifier = xgb_pipeline.named_steps['classifier']
-    explainer = shap.TreeExplainer(classifier)
     emoji_dict = pd.read_csv(ROOT_DIR / "drug_emoji_dictionary.csv")
     slang_dict = pd.read_csv(ROOT_DIR / "drug_slang_dictionary.csv")
-    print("✅ ML Models and dictionaries loaded successfully.")
+    print("OK: ML Models and dictionaries loaded successfully.")
+    
+    try:
+        explainer = shap.TreeExplainer(classifier)
+    except Exception as e:
+        print(f"WARN: Could not initialize SHAP explainer: {e}")
+        explainer = None
 except Exception as e:
-    print(f"❌ Error loading ML models or dictionaries: {e}")
+    print(f"ERROR: loading ML models or dictionaries: {e}")
     xgb_pipeline = None
 
 # 2. Load RAG Dependencies
 try:
-    print("🚀 Loading SentenceTransformer (all-MiniLM-L6-v2)...")
+    print("Loading SentenceTransformer (all-MiniLM-L6-v2)...")
     embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
     chroma_client = chromadb.PersistentClient(path=str(ROOT_DIR / "chroma_data"))
     try:
         chroma_collection = chroma_client.get_collection(name="drug_conversations")
-        print("✅ ChromaDB and SentenceTransformer loaded successfully.")
+        print("OK: ChromaDB and SentenceTransformer loaded successfully.")
     except Exception:
-        print("⚠️ Chroma collection 'drug_conversations' not found.")
+        print("WARN: Chroma collection 'drug_conversations' not found.")
         chroma_collection = None
 except Exception as e:
-    print(f"❌ Error loading RAG components: {e}")
+    print(f"ERROR: loading RAG components: {e}")
     embedding_model = None
     chroma_client = None
     chroma_collection = None
@@ -264,3 +273,53 @@ def network_analysis(input_data: NetworkAnalysisInput):
             "edge_count": G.number_of_edges()
         }
     }
+
+@app.get("/benchmark")
+def benchmark():
+    if xgb_pipeline is None:
+        raise HTTPException(status_code=503, detail="Model not loaded properly.")
+    
+    # Build a single test feature row
+    test_msg = "got that fire plug dm me asap, cash only 🔥"
+    X, _ = process_messages([test_msg])
+    
+    # Isolate classifier and preprocess data
+    preprocessor = xgb_pipeline.named_steps['prep']
+    classifier = xgb_pipeline.named_steps['classifier']
+    X_transformed = preprocessor.transform(X)
+    
+    # Warm-up run
+    classifier.predict_proba(X_transformed)
+    
+    runs = 100
+    durations = []
+    
+    for _ in range(runs):
+        start_time = time.perf_counter()
+        classifier.predict_proba(X_transformed)
+        end_time = time.perf_counter()
+        # Convert to milliseconds
+        durations.append((end_time - start_time) * 1000)
+    
+    min_ms = min(durations)
+    max_ms = max(durations)
+    mean_ms = sum(durations) / runs
+    p95_ms = float(np.percentile(durations, 95))
+    passes_sub_ms = mean_ms < 1.0
+    
+    return {
+        "runs": runs,
+        "min_ms": min_ms,
+        "max_ms": max_ms,
+        "mean_ms": mean_ms,
+        "median_ms": float(np.median(durations)),
+        "p95_ms": p95_ms,
+        "passes_sub_ms": passes_sub_ms,
+        "environment": {
+            "os": platform.system(),
+            "cpu": platform.processor(),
+            "cores": os.cpu_count()
+        },
+        "note": "Cold-start (model load) happens at server startup, not measured here. This is steady-state inference only."
+    }
+
