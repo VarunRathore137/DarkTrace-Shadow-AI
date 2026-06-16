@@ -1,7 +1,6 @@
-version: '3.8'
-
 services:
   api:
+    image: darktrace-api
     build:
       context: .
       dockerfile: Dockerfile
@@ -13,6 +12,7 @@ services:
       - ENV=development
 
   frontend:
+    image: darktrace-frontend
     build:
       context: .
       dockerfile: Dockerfile.frontend

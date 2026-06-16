@@ -54,7 +54,7 @@ st.markdown("""
 st.markdown("---")
 
 # API configuration
-API_URL = os.getenv("API_URL", "http://localhost:8000")
+API_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
 
 # Sidebar with enhanced options
 st.sidebar.title("⚙️ Analysis Options")

@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Query, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 import joblib
@@ -23,12 +24,23 @@ from create_final_model import create_final_features
 
 app = FastAPI(title="Dark Trace AI Backend", version="1.0.0")
 
+# Allow CORS for local frontend testing
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
 # 1. Load ML Artifacts
 artifacts_dir = ROOT_DIR / "artifacts"
 try:
+    # Use the XGBoost pipeline — correctly predicts high/low risk
     xgb_pipeline = joblib.load(artifacts_dir / "xgboost_pipeline.joblib")
     preprocessor = joblib.load(artifacts_dir / "xgboost_preprocessor.joblib")
     classifier = xgb_pipeline.named_steps['classifier']
+    scaler = None  # XGBoost pipeline has no separate scaler step
+    
     emoji_dict = pd.read_csv(ROOT_DIR / "drug_emoji_dictionary.csv")
     slang_dict = pd.read_csv(ROOT_DIR / "drug_slang_dictionary.csv")
     print("OK: ML Models and dictionaries loaded successfully.")
@@ -80,9 +92,13 @@ class NetworkAnalysisInput(BaseModel):
     user_id: str
     interactions: Optional[List[Interaction]] = None
 
+@app.get("/")
+def home():
+    return {"message": "DarkTrace Shadow AI backend is running"}
+
 @app.get("/health")
 def health():
-    status = "ok" if xgb_pipeline is not None else "degraded"
+    status = "Excellent" if xgb_pipeline is not None else "degraded"
     return {"status": status}
 
 def process_messages(messages: List[str]):
@@ -126,16 +142,34 @@ def predict(input_data: MessageInput, explain: bool = Query(False, description="
                 
             shap_values = explainer.shap_values(X_transformed)
             
+            # XGBoost TreeExplainer returns shape (n_samples, n_features)
+            # For multi-output it may return list — always take class-1 values
             if isinstance(shap_values, list):
-                shap_array = shap_values[1][0].tolist() 
+                # list of [class0_array, class1_array]
+                shap_array = np.array(shap_values[1]).flatten().tolist()
+            elif hasattr(shap_values, "shape") and len(shap_values.shape) == 3:
+                # shape (n_samples, n_features, n_classes) — take class 1
+                shap_array = shap_values[0, :, 1].tolist()
             else:
+                # shape (n_samples, n_features) — take first sample
                 shap_array = shap_values[0].tolist()
+            
+            # Ensure every element is a plain float (guards against nested lists)
+            shap_array = [float(v) if not isinstance(v, (list, np.ndarray)) else float(np.array(v).item()) for v in shap_array]
                 
-            response["shap_values"] = shap_array
+            feature_names_out = preprocessor.get_feature_names_out()
+            shap_dict = {name: val for name, val in zip(feature_names_out, shap_array)}
+            
+            frontend_shap_array = []
+            for key in features_df.columns:
+                shap_val = float(shap_dict.get(f"features__{key}", 0.0))
+                frontend_shap_array.append(shap_val)
+                
+            response["shap_values"] = frontend_shap_array
             
             base_value = explainer.expected_value
             if isinstance(base_value, (list, np.ndarray)):
-                base_value = float(base_value[0])
+                base_value = float(np.array(base_value).flatten()[0])
             else:
                 base_value = float(base_value)
                 
@@ -189,7 +223,7 @@ def semantic_search(input_data: SemanticSearchInput):
 
         query_params = {
             "query_embeddings": query_embedding,
-            "n_results": input_data.limit,
+            "n_results": input_data.limit * 5,  # Over-fetch to allow deduplication
             "include": ["metadatas", "documents", "distances"]
         }
         
@@ -199,9 +233,19 @@ def semantic_search(input_data: SemanticSearchInput):
         results = chroma_collection.query(**query_params)
         
         formatted_results = []
+        seen_texts = set()
+        
         if results['documents'] and len(results['documents']) > 0:
             for i in range(len(results['documents'][0])):
                 doc = results['documents'][0][i]
+                
+                # Check for duplicates (case insensitive to catch subtle copies)
+                doc_lower = doc.lower().strip()
+                if doc_lower in seen_texts:
+                    continue
+                    
+                seen_texts.add(doc_lower)
+                
                 meta = results['metadatas'][0][i]
                 dist = results['distances'][0][i]
                 
@@ -216,6 +260,9 @@ def semantic_search(input_data: SemanticSearchInput):
                     "timestamp": meta.get("timestamp"),
                     "message_id": meta.get("message_id")
                 })
+                
+                if len(formatted_results) >= input_data.limit:
+                    break
 
         return {"results": formatted_results}
     except Exception as e:
