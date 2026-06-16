@@ -1,7 +1,8 @@
 # DarkTrace Shadow AI — Drug Transaction Detection System
 
 <div align="center">
-  <img src="assets/logo.png" alt="DarkTrace Shadow AI" height="180px" width="180px"/>
+  <img width="800" height="500" alt="DarkTrace Shadow AI logo" src="https://github.com/user-attachments/assets/1b024bd0-51ba-44f3-9400-671321541d22" />
+
 </div>
 
 <div align="center">
