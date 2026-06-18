@@ -31,13 +31,21 @@ DarkTrace Shadow AI is an end-to-end machine learning pipeline designed to detec
 ---
 
 ## ✨ Screenshots
-<img width="500" height="350" alt="Screenshot 2026-06-17 170758" src="https://github.com/user-attachments/assets/577bc68c-aac0-4594-9bc8-ab0b26fa4cbf" />
+<div align="center">
+<img width="650" height="350" alt="Screenshot 2026-06-17 170758" src="https://github.com/user-attachments/assets/577bc68c-aac0-4594-9bc8-ab0b26fa4cbf" />
+</div>
 
-<img width="500" height="350" alt="Screenshot 2026-06-17 170806" src="https://github.com/user-attachments/assets/0a56bf32-d685-4ade-a2d1-61eea904a903" />
+<div align="center">
+<img width="650" height="350" alt="Screenshot 2026-06-17 170806" src="https://github.com/user-attachments/assets/0a56bf32-d685-4ade-a2d1-61eea904a903" />
+</div>
 
-<img width="500" height="350" alt="Screenshot 2026-06-17 170935" src="https://github.com/user-attachments/assets/e9359209-935e-47e1-9d51-33166e7b0a19" />
+<div align="center">
+<img width="650" height="350" alt="Screenshot 2026-06-17 170935" src="https://github.com/user-attachments/assets/e9359209-935e-47e1-9d51-33166e7b0a19" />
+</div>
 
-<img width="500" height="350" alt="Screenshot 2026-06-17 170959" src="https://github.com/user-attachments/assets/e9223a1b-7400-4afa-8847-95315e0ae015" />
+<div align="center">
+<img width="650" height="350" alt="Screenshot 2026-06-17 170959" src="https://github.com/user-attachments/assets/e9223a1b-7400-4afa-8847-95315e0ae015" />
+</div>
 
 
 ## ✨ Key Features
