@@ -1,7 +1,7 @@
 # DarkTrace Shadow AI — Drug Transaction Detection System
 
 <div align="center">
-  <img width="800" height="500" alt="logo" src="https://github.com/user-attachments/assets/383023fd-8b1c-463a-ad16-f3727b7081cb" />
+  <img width="650" height="350" alt="logo" src="https://github.com/user-attachments/assets/383023fd-8b1c-463a-ad16-f3727b7081cb" />
 
 
 </div>
@@ -29,6 +29,16 @@ DarkTrace Shadow AI is an end-to-end machine learning pipeline designed to detec
 > Trained exclusively on **synthetic data** — no real user messages were used. Built for research, law enforcement simulation, and cybersecurity education.
 
 ---
+
+## ✨ Screenshots
+<img width="500" height="350" alt="Screenshot 2026-06-17 170758" src="https://github.com/user-attachments/assets/577bc68c-aac0-4594-9bc8-ab0b26fa4cbf" />
+
+<img width="500" height="350" alt="Screenshot 2026-06-17 170806" src="https://github.com/user-attachments/assets/0a56bf32-d685-4ade-a2d1-61eea904a903" />
+
+<img width="500" height="350" alt="Screenshot 2026-06-17 170935" src="https://github.com/user-attachments/assets/e9359209-935e-47e1-9d51-33166e7b0a19" />
+
+<img width="500" height="350" alt="Screenshot 2026-06-17 170959" src="https://github.com/user-attachments/assets/e9223a1b-7400-4afa-8847-95315e0ae015" />
+
 
 ## ✨ Key Features
 
