@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Varun Rathore — AI Interview Presentation</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:    #080D1A;
+    --navy2:   #0D1526;
+    --card:    #111827;
+    --border:  #1E2A3A;
+    --blue:    #3B82F6;
+    --blue2:   #1D4ED8;
+    --cyan:    #06B6D4;
+    --gold:    #F59E0B;
+    --green:   #10B981;
+    --red:     #EF4444;
+    --purple:  #8B5CF6;
+    --text:    #F1F5F9;
+    --muted:   #64748B;
+    --sub:     #94A3B8;
+  }
+
+  html, body { width: 100%; height: 100%; background: #000; font-family: 'Inter', sans-serif; }
+
+  /* ── SLIDE WRAPPER ─────────────────────────────────────── */
+  .deck { width: 1280px; height: 720px; position: relative; margin: 0 auto; }
+  .slide {
+    width: 1280px; height: 720px;
+    position: absolute; top: 0; left: 0;
+    background: var(--navy);
+    display: none; flex-direction: column;
+    overflow: hidden;
+  }
+  .slide.active { display: flex; }
+
+  /* ── SLIDE HEADER ─────────────────────────────────────── */
+  .slide-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 28px 52px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .slide-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 3px;
+    color: var(--blue); text-transform: uppercase;
+  }
+  .slide-num { font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+  .slide-title {
+    font-size: 28px; font-weight: 800; color: var(--text);
+    padding: 0 52px; margin-top: 20px; line-height: 1.2;
+  }
+  .slide-title span { color: var(--blue); }
+
+  /* ── SLIDE BODY ─────────────────────────────────────── */
+  .slide-body {
+    flex: 1; padding: 20px 52px 24px;
+    display: flex; gap: 32px;
+  }
+
+  /* ── CARD ─────────────────────────────────────── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+  }
+  .card-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 2.5px;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+  }
+
+  /* ── BADGE ─────────────────────────────────────── */
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 12px; border-radius: 999px;
+    font-size: 11px; font-weight: 600; letter-spacing: 1px;
+  }
+  .badge.blue   { background: rgba(59,130,246,0.15); color: var(--blue);   border: 1px solid rgba(59,130,246,0.3); }
+  .badge.cyan   { background: rgba(6,182,212,0.15);  color: var(--cyan);   border: 1px solid rgba(6,182,212,0.3);  }
+  .badge.gold   { background: rgba(245,158,11,0.15); color: var(--gold);   border: 1px solid rgba(245,158,11,0.3); }
+  .badge.green  { background: rgba(16,185,129,0.15); color: var(--green);  border: 1px solid rgba(16,185,129,0.3); }
+  .badge.purple { background: rgba(139,92,246,0.15); color: var(--purple); border: 1px solid rgba(139,92,246,0.3); }
+  .badge.red    { background: rgba(239,68,68,0.12);  color: var(--red);    border: 1px solid rgba(239,68,68,0.25); }
+
+  /* ── METRIC ─────────────────────────────────────── */
+  .metric-val { font-size: 32px; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+  .metric-lbl { font-size: 11px; color: var(--muted); margin-top: 3px; font-weight: 500; }
+
+  /* ── FLOW ARROW ─────────────────────────────────── */
+  .arrow { color: var(--muted); font-size: 20px; align-self: center; }
+
+  /* ── NAV ─────────────────────────────────────────── */
+  .nav {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 16px; z-index: 999;
+    background: rgba(13,21,38,0.9); border: 1px solid var(--border);
+    border-radius: 999px; padding: 10px 24px; backdrop-filter: blur(12px);
+  }
+  .nav button {
+    background: none; border: none; cursor: pointer;
+    color: var(--sub); font-size: 14px; padding: 4px 10px; border-radius: 6px;
+    transition: all 0.2s; font-family: 'Inter', sans-serif; font-weight: 500;
+  }
+  .nav button:hover { background: var(--border); color: var(--text); }
+  .nav .dots { display: flex; gap: 6px; }
+  .nav .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--border); cursor: pointer; transition: all 0.2s;
+  }
+  .nav .dot.active { background: var(--blue); transform: scale(1.3); }
+
+  /* ── SLIDE 1 ─────────────────────────────────────── */
+  .s1-left  { flex: 1; display: flex; flex-direction: column; gap: 14px; }
+  .s1-right { width: 340px; display: flex; flex-direction: column; gap: 14px; }
+
+  .project-name {
+    font-size: 22px; font-weight: 800; color: var(--text);
+    letter-spacing: -0.3px;
+  }
+  .project-name .highlight { color: var(--cyan); }
+
+  .use-case-text {
+    font-size: 13.5px; color: var(--sub); line-height: 1.65;
+  }
+
+  .tech-grid {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px;
+  }
+  .tech-pill {
+    background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.25);
+    color: var(--blue); font-size: 12px; font-weight: 600;
+    padding: 5px 12px; border-radius: 6px; font-family: 'JetBrains Mono', monospace;
+  }
+
+  .role-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 13px; color: var(--sub); line-height: 1.5;
+  }
+  .role-dot {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--blue);
+    margin-top: 5px; flex-shrink: 0;
+  }
+
+  /* ── SLIDE 2 ─────────────────────────────────────── */
+  .flow-row {
+    display: flex; align-items: stretch; gap: 0;
+    margin: 8px 0;
+  }
+  .flow-node {
+    flex: 1; background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; text-align: center;
+    position: relative;
+  }
+  .flow-node .fn-icon { font-size: 28px; margin-bottom: 6px; }
+  .flow-node .fn-title { font-size: 13px; font-weight: 700; color: var(--text); }
+  .flow-node .fn-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .flow-connector {
+    display: flex; align-items: center; padding: 0 6px;
+    flex-shrink: 0;
+  }
+  .flow-connector svg { color: var(--blue); }
+
+  .s2-metrics {
+    display: flex; gap: 14px; margin-top: 6px;
+  }
+  .s2-metrics .card { flex: 1; text-align: center; }
+
+  .step-rows { display: flex; flex-direction: column; gap: 10px; }
+  .step-row {
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .step-num {
+    width: 26px; height: 26px; border-radius: 50%; background: var(--blue2);
+    color: var(--text); font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .step-text { font-size: 12.5px; color: var(--sub); line-height: 1.55; }
+  .step-text strong { color: var(--text); font-weight: 600; }
+
+  /* ── SLIDE 3 ─────────────────────────────────────── */
+  .issue-timeline {
+    display: flex; flex-direction: column; gap: 0;
+  }
+  .it-item {
+    display: flex; gap: 16px; position: relative;
+  }
+  .it-item:not(:last-child)::before {
+    content: ''; position: absolute;
+    left: 16px; top: 36px; width: 2px;
+    height: calc(100% - 4px);
+    background: var(--border);
+  }
+  .it-icon-wrap {
+    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; margin-top: 2px; z-index: 1;
+  }
+  .it-body { padding-bottom: 18px; flex: 1; }
+  .it-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px; }
+  .it-text  { font-size: 13px; color: var(--sub); line-height: 1.55; }
+  .it-text strong { color: var(--text); }
+
+  .learning-box {
+    background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(6,182,212,0.07));
+    border: 1px solid rgba(16,185,129,0.3); border-radius: 12px;
+    padding: 18px 22px; margin-top: 6px;
+  }
+  .learning-box .lb-title { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: var(--green); text-transform: uppercase; margin-bottom: 6px; }
+  .learning-box .lb-text  { font-size: 13.5px; color: var(--text); line-height: 1.6; font-weight: 500; }
+
+  /* ── SLIDE 4 ─────────────────────────────────────── */
+  .agent-flow {
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .af-row {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .af-box {
+    background: var(--navy2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px;
+    font-size: 12px; font-weight: 600; color: var(--text);
+    flex: 1; text-align: center;
+  }
+  .af-box.accent { border-color: rgba(59,130,246,0.5); color: var(--blue); background: rgba(59,130,246,0.07); }
+  .af-box.gold   { border-color: rgba(245,158,11,0.4);  color: var(--gold); background: rgba(245,158,11,0.07); }
+  .af-box.purple { border-color: rgba(139,92,246,0.4); color: var(--purple); background: rgba(139,92,246,0.07); }
+  .af-sub { font-size: 10px; color: var(--muted); margin-top: 2px; font-weight: 400; }
+
+  .perf-list { display: flex; flex-direction: column; gap: 10px; }
+  .perf-item {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .perf-icon { font-size: 18px; width: 28px; text-align: center; }
+  .perf-text { font-size: 13px; color: var(--sub); line-height: 1.5; }
+  .perf-text strong { color: var(--text); }
+
+  /* ── SLIDE 5 ─────────────────────────────────────── */
+  .link-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px; flex: 1;
+  }
+  .link-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 22px 24px;
+    display: flex; flex-direction: column; gap: 10px;
+    transition: border-color 0.2s;
+    text-decoration: none;
+  }
+  .link-card:hover { border-color: var(--blue); }
+  .lc-icon { font-size: 30px; }
+  .lc-type { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+  .lc-title { font-size: 15px; font-weight: 700; color: var(--text); }
+  .lc-url { font-size: 11.5px; color: var(--blue); font-family: 'JetBrains Mono', monospace; word-break: break-all; }
+
+  .name-tag {
+    text-align: center; padding: 20px;
+    border-top: 1px solid var(--border);
+  }
+  .name-tag .nt-name { font-size: 22px; font-weight: 800; color: var(--text); }
+  .name-tag .nt-role { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  /* ── DECORATIVE ─────────────────────────────────── */
+  .deco-line {
+    position: absolute; right: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--blue), var(--cyan), transparent);
+    opacity: 0.5;
+  }
+  .corner-glow {
+    position: absolute; top: -120px; right: -120px;
+    width: 320px; height: 320px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* ── PRINT / EXPORT ─────────────────────────────── */
+  @media print {
+    .nav { display: none; }
+    .slide { display: flex !important; page-break-after: always; }
+    body { background: white; }
+  }
+
+  /* Divider */
+  .divider { height: 1px; background: var(--border); margin: 10px 0; }
+</style>
+</head>
+<body>
+
+<div class="deck">
+
+<!-- ══════════════════════════════════════════════════
+     SLIDE 1 — GenAI Project Experience
+══════════════════════════════════════════════════ -->
+<div class="slide active" id="slide-1">
+  <div class="corner-glow"></div>
+  <div class="deco-line"></div>
+
+  <div class="slide-header">
+    <div class="slide-label">GenAI / Agentic AI Project Experience</div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
+      <div style="font-size:15px;color:var(--text);font-weight:700;letter-spacing:0.2px;">Varun Rathore &nbsp;<span style="color:var(--border);">|</span>&nbsp; CSE Class of 2026</div>
+      <div style="font-size:12px;color:var(--sub);font-weight:500;">Former Software &amp; Algorithm Research Intern &mdash; QRACE, NIT Delhi</div>
+      <div class="slide-num" style="margin-top:2px;">01 / 05</div>
+    </div>
+  </div>
+
+  <div class="slide-title">
+    <span>Quantum-AI Verse</span> — Agentic Orchestration Platform
+  </div>
+
+  <div class="slide-body">
+    <!-- LEFT -->
+    <div class="s1-left">
+      <div class="card" style="flex:1">
+        <div class="card-label">Business Use Case</div>
+        <p class="use-case-text">
+          Automating complex computational workflows by enabling an LLM to
+          <strong style="color:var(--text)">autonomously write, optimize, and execute</strong>
+          specialized quantum-simulation code on cloud infrastructure —
+          removing the human bottleneck from the full research-to-execution loop.
+        </p>
+      </div>
+
+      <div class="card" style="flex:1">
+        <div class="card-label">Role &amp; Contribution</div>
+        <div style="display:flex;flex-direction:column;gap:9px;margin-top:4px;">
+          <div class="role-item"><div class="role-dot"></div><span>Architected the <strong style="color:var(--text)">agentic tool-calling layer</strong> — strictly focused on automated logic execution and tool-calling <em style="color:var(--muted);">(distinct from the 3D Quantum Teleportation Visualization project)</em></span></div>
+          <div class="role-item"><div class="role-dot"></div><span>Built full-stack integration with <strong style="color:var(--text)">React.js + Three.js</strong> for real-time output visualization</span></div>
+          <div class="role-item"><div class="role-dot"></div><span>Designed multi-step reasoning chains for complex, iterative workflows</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">Technology Stack</div>
+        <div class="tech-grid">
+          <span class="tech-pill">Python</span>
+          <span class="tech-pill">GPT / Claude</span>
+          <span class="tech-pill">LangChain</span>
+          <span class="tech-pill">React.js</span>
+          <span class="tech-pill">Three.js</span>
+          <span class="tech-pill">Qiskit</span>
+          <span class="tech-pill">IBM Cloud</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="s1-right">
+      <div class="card" style="text-align:center;padding:24px;">
+        <div style="font-size:48px;margin-bottom:10px;">⚛️</div>
+        <div style="font-size:15px;font-weight:800;color:var(--text)">Quantum-AI Verse</div>
+        <div style="font-size:12px;color:var(--muted);margin:6px 0 14px">Agentic Code Execution</div>
+        <span class="badge gold">⚡ Functional Beta</span>
+      </div>
+
+      <div class="card" style="flex:1">
+        <div class="card-label">What Makes It Agentic</div>
+        <div style="display:flex;flex-direction:column;gap:14px;margin-top:8px;">
+          <div style="text-align:center;">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:1.5px;">Autonomous Loop</div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap;">
+              <span class="badge blue">Plan</span>
+              <span style="color:var(--muted)">→</span>
+              <span class="badge cyan">Code</span>
+              <span style="color:var(--muted)">→</span>
+              <span class="badge purple">Execute</span>
+              <span style="color:var(--muted)">→</span>
+              <span class="badge green">Debug</span>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div style="font-size:12.5px;color:var(--sub);line-height:1.6;">
+            The LLM <strong style="color:var(--text)">self-corrects</strong> execution errors in a cyclic loop — no human intervention required between iterations.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════
+     SLIDE 2 — Solution Architecture
+══════════════════════════════════════════════════ -->
+<div class="slide" id="slide-2">
+  <div class="corner-glow"></div>
+  <div class="deco-line"></div>
+
+  <div class="slide-header">
+    <div class="slide-label">Solution Architecture</div>
+    <div class="slide-num">02 / 05</div>
+  </div>
+
+  <div class="slide-title">
+    High-Throughput <span>RAG Pipeline</span> — DarkTrace Shadow AI
+  </div>
+
+  <div class="slide-body" style="flex-direction:column;">
+
+    <!-- FLOW DIAGRAM -->
+    <div class="flow-row">
+      <div class="flow-node">
+        <div class="fn-icon">🗂️</div>
+        <div class="fn-title">Raw Data</div>
+        <div class="fn-sub">50,000+ unstructured<br/>chat logs</div>
+      </div>
+      <div class="flow-connector">
+        <svg width="32" height="16" viewBox="0 0 32 16" fill="none"><path d="M0 8h28M22 2l8 6-8 6" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="flow-node" style="border-color:rgba(6,182,212,0.4)">
+        <div class="fn-icon">🧹</div>
+        <div class="fn-title">Ingest &amp; Clean</div>
+        <div class="fn-sub">Pandas pipeline<br/>+ embedding</div>
+      </div>
+      <div class="flow-connector">
+        <svg width="32" height="16" viewBox="0 0 32 16" fill="none"><path d="M0 8h28M22 2l8 6-8 6" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="flow-node" style="border-color:rgba(139,92,246,0.4)">
+        <div class="fn-icon">🗄️</div>
+        <div class="fn-title">Vector DB</div>
+        <div class="fn-sub">ChromaDB<br/>semantic index</div>
+      </div>
+      <div class="flow-connector">
+        <svg width="32" height="16" viewBox="0 0 32 16" fill="none"><path d="M0 8h28M22 2l8 6-8 6" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="flow-node" style="border-color:rgba(239,68,68,0.5);background:rgba(239,68,68,0.06)">
+        <div class="fn-icon">🔀</div>
+        <div class="fn-title">Re-ranker</div>
+        <div class="fn-sub">Cross-Encoder<br/>top-3 precision</div>
+      </div>
+      <div class="flow-connector">
+        <svg width="32" height="16" viewBox="0 0 32 16" fill="none"><path d="M0 8h28M22 2l8 6-8 6" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="flow-node" style="border-color:rgba(59,130,246,0.5);background:rgba(59,130,246,0.07)">
+        <div class="fn-icon">⚡</div>
+        <div class="fn-title">FastAPI</div>
+        <div class="fn-sub">2,300+ req/sec<br/>concurrent</div>
+      </div>
+      <div class="flow-connector">
+        <svg width="32" height="16" viewBox="0 0 32 16" fill="none"><path d="M0 8h28M22 2l8 6-8 6" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="flow-node" style="border-color:rgba(245,158,11,0.4)">
+        <div class="fn-icon">🤖</div>
+        <div class="fn-title">LLM</div>
+        <div class="fn-sub">Context injection<br/>+ generation</div>
+      </div>
+      <div class="flow-connector">
+        <svg width="32" height="16" viewBox="0 0 32 16" fill="none"><path d="M0 8h28M22 2l8 6-8 6" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="flow-node" style="border-color:rgba(16,185,129,0.4)">
+        <div class="fn-icon">📊</div>
+        <div class="fn-title">Live Dashboard</div>
+        <div class="fn-sub">Streamed output<br/>real-time UI</div>
+      </div>
+    </div>
+
+    <!-- BOTTOM ROW: Steps + Metrics -->
+    <div style="display:flex;gap:24px;flex:1;margin-top:10px;">
+      <div class="card" style="flex:2">
+        <div class="card-label">Architecture Phases</div>
+        <div class="step-rows" style="margin-top:8px;">
+          <div class="step-row">
+            <div class="step-num" style="background:rgba(6,182,212,0.25);color:var(--cyan)">1</div>
+            <div class="step-text"><strong>Ingest &amp; Embed</strong> — 50,000+ logs are cleaned via Pandas, converted to embeddings, and stored in ChromaDB vector index.</div>
+          </div>
+          <div class="step-row">
+            <div class="step-num">2</div>
+            <div class="step-text"><strong>Concurrent Retrieval</strong> — User queries hit a highly concurrent FastAPI backend, scaling to 2,300+ requests/sec with async handlers.</div>
+          </div>
+          <div class="step-row">
+            <div class="step-num" style="background:rgba(239,68,68,0.2);color:var(--red)">3</div>
+            <div class="step-text"><strong>Re-rank &amp; Filter</strong> — Cross-Encoder scores all retrieved chunks; only the top 3 are passed to the LLM, eliminating context noise.</div>
+          </div>
+          <div class="step-row">
+            <div class="step-num" style="background:rgba(245,158,11,0.2);color:var(--gold)">4</div>
+            <div class="step-text"><strong>LLM Orchestration</strong> — Precision top-3 snippets injected into the LLM context window for targeted generation.</div>
+          </div>
+          <div class="step-row">
+            <div class="step-num" style="background:rgba(16,185,129,0.2);color:var(--green)">5</div>
+            <div class="step-text"><strong>Streaming Output</strong> — Results stream back to the live UI dashboard for instant, low-latency analyst feedback.</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;width:220px;">
+        <div class="card" style="text-align:center;flex:1">
+          <div class="metric-val" style="color:var(--cyan)">2,300<span style="font-size:16px;color:var(--muted)">+</span></div>
+          <div class="metric-lbl">Requests / Second</div>
+        </div>
+        <div class="card" style="text-align:center;flex:1">
+          <div class="metric-val" style="color:var(--gold)">0.46<span style="font-size:16px;color:var(--muted)">ms</span></div>
+          <div class="metric-lbl">Inference Latency</div>
+        </div>
+        <div class="card" style="text-align:center;flex:1">
+          <div class="metric-val" style="color:var(--green)">50K<span style="font-size:16px;color:var(--muted)">+</span></div>
+          <div class="metric-lbl">Records Ingested</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════
+     SLIDE 3 — Production Issue & Resolution
+══════════════════════════════════════════════════ -->
+<div class="slide" id="slide-3">
+  <div class="corner-glow"></div>
+  <div class="deco-line"></div>
+
+  <div class="slide-header">
+    <div class="slide-label">Production Issue &amp; Resolution</div>
+    <div class="slide-num">03 / 05</div>
+  </div>
+
+  <div class="slide-title">
+    Resolving <span>High Latency &amp; Token Exhaustion</span> in Concurrent RAG
+  </div>
+
+  <div class="slide-body">
+    <!-- LEFT: Timeline -->
+    <div style="flex:1.2">
+      <div class="issue-timeline">
+
+        <div class="it-item">
+          <div class="it-icon-wrap" style="background:rgba(239,68,68,0.15);">🚨</div>
+          <div class="it-body">
+            <div class="it-label" style="color:var(--red)">Issue Detected</div>
+            <div class="it-text">High API latency spikes and <strong>LLM token exhaustion</strong> during concurrent RAG inference under peak traffic load.</div>
+          </div>
+        </div>
+
+        <div class="it-item">
+          <div class="it-icon-wrap" style="background:rgba(245,158,11,0.15);">🔍</div>
+          <div class="it-body">
+            <div class="it-label" style="color:var(--gold)">Root Cause</div>
+            <div class="it-text">Overly large, <strong>poorly chunked text segments</strong> retrieved from the vector DB were flooding the LLM context window, causing context overflow and slow generation.</div>
+          </div>
+        </div>
+
+        <div class="it-item">
+          <div class="it-icon-wrap" style="background:rgba(59,130,246,0.15);">📊</div>
+          <div class="it-body">
+            <div class="it-label" style="color:var(--blue)">Diagnosis</div>
+            <div class="it-text">FastAPI endpoint profiling confirmed the bottleneck was in the <strong>vector retrieval payload size</strong> — not in the LLM generation step itself.</div>
+          </div>
+        </div>
+
+        <div class="it-item" style="--it-last: 1">
+          <div class="it-icon-wrap" style="background:rgba(16,185,129,0.15);">✅</div>
+          <div class="it-body" style="padding-bottom:0">
+            <div class="it-label" style="color:var(--green)">Resolution</div>
+            <div class="it-text">Implemented <strong>semantic chunking</strong> + a <strong>Cross-Encoder re-ranker</strong> — reduced retrieval payload from <strong style="color:var(--red);">~8,000 tokens</strong> (all chunks) down to a precise <strong style="color:var(--green);">top-3 snippets (~600 tokens)</strong>, a 93% token reduction.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RIGHT: Before/After + Learning -->
+    <div style="width:360px;display:flex;flex-direction:column;gap:14px;">
+
+      <div class="card">
+        <div class="card-label">Before vs After</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:8px;">
+            <span style="font-size:12px;color:var(--red);font-weight:600;">❌ Before</span>
+            <span style="font-size:11px;color:var(--sub)">~8,000 tokens → LLM</span>
+            <span style="font-size:13px;font-weight:700;color:var(--red);font-family:'JetBrains Mono',monospace">~2,400ms</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);border-radius:8px;">
+            <span style="font-size:12px;color:var(--green);font-weight:600;">✅ After</span>
+            <span style="font-size:11px;color:var(--sub)">~600 tokens (top 3)</span>
+            <span style="font-size:13px;font-weight:700;color:var(--green);font-family:'JetBrains Mono',monospace">0.46ms</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;">
+        <div class="card" style="flex:1;text-align:center;">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:1.5px;">Fix</div>
+          <span class="badge cyan">Semantic Chunking</span>
+        </div>
+        <div class="card" style="flex:1;text-align:center;">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:1.5px;">Ranker</div>
+          <span class="badge purple">Cross-Encoder</span>
+        </div>
+      </div>
+
+      <div class="learning-box" style="flex:1">
+        <div class="lb-title">💡 Key Learning</div>
+        <div class="lb-text">
+          Context <em>precision</em> is far more critical than context <em>quantity</em>. Passing 3 highly-relevant snippets consistently outperforms passing 20 loosely-relevant ones.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════
+     SLIDE 4 — AI Agent Development
+══════════════════════════════════════════════════ -->
+<div class="slide" id="slide-4">
+  <div class="corner-glow"></div>
+  <div class="deco-line"></div>
+
+  <div class="slide-header">
+    <div class="slide-label">AI Agent Development</div>
+    <div class="slide-num">04 / 05</div>
+  </div>
+
+  <div class="slide-title">
+    Autonomous <span>Code-Execution Agent</span> — Quantum-AI Verse
+  </div>
+
+  <div class="slide-body">
+    <!-- LEFT: Agent Architecture -->
+    <div style="flex:1.3;display:flex;flex-direction:column;gap:12px;">
+
+      <div class="card" style="flex:0 0 auto;">
+        <div class="card-label">Agent Architecture — Execution Loop</div>
+        <div class="agent-flow" style="margin-top:10px;">
+          <div class="af-row">
+            <div class="af-box accent">User Prompt<div class="af-sub">Natural language intent</div></div>
+            <div style="font-size:18px;color:var(--muted);padding:0 4px;">→</div>
+            <div class="af-box accent">LLM Planner<div class="af-sub">GPT / Claude</div></div>
+            <div style="font-size:18px;color:var(--muted);padding:0 4px;">→</div>
+            <div class="af-box accent">Tool Selection<div class="af-sub">LangGraph state</div></div>
+          </div>
+          <div style="display:flex;justify-content:center;padding:4px 0;">
+            <span style="color:var(--muted);font-size:18px;">↓</span>
+          </div>
+          <div class="af-row">
+            <div class="af-box purple">Code Generator<div class="af-sub">Qiskit / Python</div></div>
+            <div style="font-size:18px;color:var(--muted);padding:0 4px;">→</div>
+            <div class="af-box gold">IBM Cloud Exec<div class="af-sub">External API call</div></div>
+            <div style="font-size:18px;color:var(--muted);padding:0 4px;">→</div>
+            <div class="af-box" style="border-color:rgba(16,185,129,0.4);color:var(--green);background:rgba(16,185,129,0.07)">
+              Result / Error<div class="af-sub">Feeds back to LLM</div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:center;padding:4px 0;">
+            <span style="color:var(--blue);font-size:11px;font-weight:600;letter-spacing:1.5px;">↑ CYCLIC SELF-CORRECTION LOOP ↑</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="flex:1">
+        <div class="card-label">External API Interaction</div>
+        <div style="font-size:13px;color:var(--sub);margin-top:8px;line-height:1.6;">
+          The agent evaluates generated quantum circuit logic, then autonomously calls 
+          <strong style="color:var(--text)">IBM Quantum Cloud APIs</strong> to execute and retrieve results — 
+          without any human in the loop between reasoning and execution.
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Framework + Optimizations -->
+    <div style="width:330px;display:flex;flex-direction:column;gap:12px;">
+
+      <div class="card">
+        <div class="card-label">Framework</div>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:10px;">
+          <div style="font-size:32px">🦜</div>
+          <div>
+            <div style="font-size:16px;font-weight:800;color:var(--text)">LangGraph / LangChain</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px;">Stateful agentic workflows</div>
+          </div>
+        </div>
+        <div class="divider" style="margin:12px 0;"></div>
+        <div style="font-size:11px;color:var(--sub);margin-bottom:8px;text-transform:uppercase;letter-spacing:1.5px;">Why LangGraph?</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub)"><span class="badge green" style="font-size:10px;padding:2px 8px;">✓</span>Robust state management across iterations</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub)"><span class="badge green" style="font-size:10px;padding:2px 8px;">✓</span>Native cyclic / multi-actor execution graphs</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub)"><span class="badge green" style="font-size:10px;padding:2px 8px;">✓</span>Required for iterative code-debugging loops</div>
+        </div>
+      </div>
+
+      <div class="card" style="flex:1">
+        <div class="card-label">Performance Optimizations</div>
+        <div class="perf-list" style="margin-top:10px;">
+          <div class="perf-item">
+            <div class="perf-icon">💾</div>
+            <div class="perf-text"><strong>API Response Caching</strong> — Frequent IBM Cloud calls cached to eliminate redundant round-trips</div>
+          </div>
+          <div class="perf-item">
+            <div class="perf-icon">🌊</div>
+            <div class="perf-text"><strong>Streaming LLM Output</strong> — Token streaming reduces perceived latency from seconds to milliseconds</div>
+          </div>
+          <div class="perf-item">
+            <div class="perf-icon">🔄</div>
+            <div class="perf-text"><strong>Cyclic Error Recovery</strong> — Execution errors are fed back into the LLM for autonomous self-correction</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════
+     SLIDE 5 — Additional Work / Connect
+══════════════════════════════════════════════════ -->
+<div class="slide" id="slide-5">
+  <div class="corner-glow" style="background:radial-gradient(circle,rgba(6,182,212,0.08) 0%,transparent 70%)"></div>
+  <div class="deco-line"></div>
+
+  <div class="slide-header">
+    <div class="slide-label">Additional Work</div>
+    <div class="slide-num">05 / 05</div>
+  </div>
+
+  <div class="slide-title">
+    Connect &amp; <span>Review My Work</span>
+  </div>
+
+  <div class="slide-body" style="flex-direction:column;gap:16px;">
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+      <div class="link-card">
+        <div class="lc-icon">🌐</div>
+        <div>
+          <div class="lc-type">Portfolio</div>
+          <div class="lc-title">Personal Website</div>
+        </div>
+        <div class="lc-url">varun-rathore-portfolio-vert.vercel.app</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;">Projects, case studies, live demos</div>
+      </div>
+
+      <div class="link-card">
+        <div class="lc-icon">💼</div>
+        <div>
+          <div class="lc-type">Professional Network</div>
+          <div class="lc-title">LinkedIn</div>
+        </div>
+        <div class="lc-url">linkedin.com/in/varun-rathore137</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;">Work history, recommendations &amp; posts</div>
+      </div>
+
+      <div class="link-card">
+        <div class="lc-icon">🐙</div>
+        <div>
+          <div class="lc-type">Open Source — GitHub</div>
+          <div class="lc-title">All Repositories</div>
+        </div>
+        <div class="lc-url" style="margin-bottom:4px;">github.com/VarunRathore137</div>
+        <div style="font-size:10.5px;color:var(--blue);font-family:'JetBrains Mono',monospace;margin-top:3px;">↳ /DarkTrace-Shadow-AI</div>
+        <div style="font-size:10.5px;color:var(--blue);font-family:'JetBrains Mono',monospace;margin-top:2px;">↳ /Quantum-AI-Verse</div>
+        <div style="font-size:10.5px;color:var(--blue);font-family:'JetBrains Mono',monospace;margin-top:2px;">↳ /The-Hybrid-Quantum-Portfolio-Optimizer</div>
+      </div>
+
+      <div class="link-card">
+        <div class="lc-icon">🎬</div>
+        <div>
+          <div class="lc-type">Live Demo</div>
+          <div class="lc-title">Video Walkthrough</div>
+        </div>
+        <div class="lc-url">drive.google.com/file/d/1yNit0sgrk47SNY3mVDHYGpNIzN-2qrcM</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;">DarkTrace Shadow AI — full system walkthrough</div>
+      </div>
+
+      <div class="link-card" style="border-color:rgba(245,158,11,0.3);">
+        <div class="lc-icon">📄</div>
+        <div>
+          <div class="lc-type" style="color:var(--gold);">Published Research</div>
+          <div class="lc-title">arXiv Paper</div>
+        </div>
+        <div class="lc-url" style="font-size:10.5px;">arxiv.org/abs/2509.20547</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:5px;line-height:1.45;font-style:italic;">&ldquo;Realization of Graphene Quantum Dots for Innovative Biosensor Development and Diverse Applications&rdquo;</div>
+      </div>
+
+      <div class="link-card" style="border-color:rgba(139,92,246,0.3);">
+        <div class="lc-icon">🎤</div>
+        <div>
+          <div class="lc-type" style="color:var(--purple);">Leadership</div>
+          <div class="lc-title">Public Speaking</div>
+        </div>
+        <div style="font-size:13px;color:var(--sub);margin-top:6px;line-height:1.55;">Delivered <strong style="color:var(--purple);font-size:18px;">13+</strong> technical sessions as Guest Speaker on <strong style="color:var(--text);">advanced computing architectures</strong></div>
+      </div>
+    </div>
+
+    <!-- Projects summary strip -->
+    <div style="display:flex;gap:14px;">
+      <div class="card" style="flex:1;display:flex;align-items:center;gap:16px;">
+        <div style="font-size:32px">⚛️</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:700;color:var(--text)">Quantum-AI Verse</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px;">Agentic LLM + quantum code execution on IBM Cloud</div>
+          <div style="font-size:11px;color:var(--blue);margin-top:5px;font-family:'JetBrains Mono',monospace;">github.com/VarunRathore137/Quantum-AI-Verse</div>
+        </div>
+        <span class="badge gold" style="margin-left:auto;flex-shrink:0">Beta</span>
+      </div>
+      <div class="card" style="flex:1;display:flex;align-items:center;gap:16px;">
+        <div style="font-size:32px">🔍</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:700;color:var(--text)">DarkTrace Shadow AI</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px;">Real-time drug-traffic detection · XGBoost · SHAP · RAG</div>
+          <div style="font-size:11px;color:var(--blue);margin-top:5px;font-family:'JetBrains Mono',monospace;">github.com/VarunRathore137/DarkTrace-Shadow-AI</div>
+        </div>
+        <span class="badge green" style="margin-left:auto;flex-shrink:0">Live</span>
+      </div>
+    </div>
+
+    <div class="name-tag">
+      <div class="nt-name">Varun Rathore</div>
+      <div class="nt-role">AI / ML Engineer &nbsp;·&nbsp; Full-Stack Developer &nbsp;·&nbsp; Cybersecurity Enthusiast</div>
+    </div>
+
+  </div>
+</div>
+
+</div><!-- end .deck -->
+
+<!-- ── NAVIGATION ─────────────────────────────────── -->
+<div class="nav">
+  <button onclick="changeSlide(-1)">&#8592; Prev</button>
+  <div class="dots">
+    <div class="dot active" onclick="goTo(0)"></div>
+    <div class="dot" onclick="goTo(1)"></div>
+    <div class="dot" onclick="goTo(2)"></div>
+    <div class="dot" onclick="goTo(3)"></div>
+    <div class="dot" onclick="goTo(4)"></div>
+  </div>
+  <button onclick="changeSlide(1)">Next &#8594;</button>
+</div>
+
+<script>
+  let cur = 0;
+  const slides = document.querySelectorAll('.slide');
+  const dots   = document.querySelectorAll('.dot');
+
+  function goTo(n) {
+    slides[cur].classList.remove('active');
+    dots[cur].classList.remove('active');
+    cur = (n + slides.length) % slides.length;
+    slides[cur].classList.add('active');
+    dots[cur].classList.add('active');
+  }
+
+  function changeSlide(dir) { goTo(cur + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown')  changeSlide(+1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')    changeSlide(-1);
+  });
+</script>
+
+</body>
+</html>
