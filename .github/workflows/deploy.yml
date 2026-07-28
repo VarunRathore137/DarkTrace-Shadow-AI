@@ -28,8 +28,11 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run Pytest test suite
+        env:
+          PYTHONPATH: ${{ github.workspace }}
         run: |
           pytest tests/ --doctest-modules --junitxml=junit/test-results.xml
+
 
   build-and-publish:
     name: Build & Publish Docker Containers
