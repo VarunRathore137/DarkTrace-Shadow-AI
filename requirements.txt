@@ -19,3 +19,5 @@ plotly>=5.17.0
 lightgbm>=4.0.0
 networkx>=3.0
 locust>=2.20.0
+gevent>=24.2.0
+
