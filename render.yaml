@@ -1,0 +1,24 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# Dark Trace AI — Render Infrastructure as Code Blueprint
+# https://render.com/docs/blueprint-spec
+# ═══════════════════════════════════════════════════════════════════════════
+services:
+  - type: web
+    name: darktrace-api
+    runtime: python
+    region: oregon
+    plan: free
+    branch: main
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT --workers 1
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.12
+      - key: ENV
+        value: production
+      - key: ALLOWED_ORIGINS
+        value: "*"
+      - key: CHROMA_DATA_DIR
+        value: ./chroma_data

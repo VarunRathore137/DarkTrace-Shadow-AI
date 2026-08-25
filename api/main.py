@@ -22,16 +22,29 @@ ROOT_DIR = Path(__file__).parent.parent
 sys.path.append(str(ROOT_DIR))
 from create_final_model import create_final_features
 
-app = FastAPI(title="Dark Trace AI Backend", version="1.0.0")
+# Environment Configuration
+ENV = os.getenv("ENV", "development")
+ALLOWED_ORIGINS_RAW = os.getenv("ALLOWED_ORIGINS", "*")
+if ALLOWED_ORIGINS_RAW.strip() == "*":
+    allowed_origins = ["*"]
+else:
+    allowed_origins = [origin.strip() for origin in ALLOWED_ORIGINS_RAW.split(",") if origin.strip()]
 
-# Allow CORS for local frontend testing
+app = FastAPI(
+    title="Dark Trace AI Backend",
+    version="1.0.0",
+    description="Military-grade threat intelligence and message analysis API"
+)
+
+# Configure CORS Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
+
 # 1. Load ML Artifacts
 artifacts_dir = ROOT_DIR / "artifacts"
 try:
@@ -43,7 +56,7 @@ try:
     
     emoji_dict = pd.read_csv(ROOT_DIR / "drug_emoji_dictionary.csv")
     slang_dict = pd.read_csv(ROOT_DIR / "drug_slang_dictionary.csv")
-    print("OK: ML Models and dictionaries loaded successfully.")
+    print(f"OK: [{ENV.upper()}] ML Models and dictionaries loaded successfully.")
     
     try:
         explainer = shap.TreeExplainer(classifier)
@@ -55,15 +68,16 @@ except Exception as e:
     xgb_pipeline = None
 
 # 2. Load RAG Dependencies
+chroma_dir_env = os.getenv("CHROMA_DATA_DIR", str(ROOT_DIR / "chroma_data"))
 try:
     print("Loading SentenceTransformer (all-MiniLM-L6-v2)...")
     embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
-    chroma_client = chromadb.PersistentClient(path=str(ROOT_DIR / "chroma_data"))
+    chroma_client = chromadb.PersistentClient(path=str(chroma_dir_env))
     try:
         chroma_collection = chroma_client.get_collection(name="drug_conversations")
         print("OK: ChromaDB and SentenceTransformer loaded successfully.")
     except Exception:
-        print("WARN: Chroma collection 'drug_conversations' not found.")
+        print(f"WARN: Chroma collection 'drug_conversations' not found in {chroma_dir_env}.")
         chroma_collection = None
 except Exception as e:
     print(f"ERROR: loading RAG components: {e}")

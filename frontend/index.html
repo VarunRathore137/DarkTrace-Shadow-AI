@@ -1130,9 +1130,37 @@ void main(){
 })();
 
 /* ═══════════════════════════════════════════════════════════ */
-/* STATE                                                        */
+/* DYNAMIC API CONFIGURATION & STATE                           */
 /* ═══════════════════════════════════════════════════════════ */
-const API = 'http://127.0.0.1:8000';
+function resolveApiUrl() {
+  // 1. URL Query Param Override (e.g. ?api=https://custom-backend.com)
+  const urlParams = new URLSearchParams(window.location.search);
+  const paramApi = urlParams.get('api');
+  if (paramApi) {
+    localStorage.setItem('DARKTRACE_API_URL', paramApi.replace(/\/$/, ''));
+    return paramApi.replace(/\/$/, '');
+  }
+
+  // 2. LocalStorage override
+  const cachedApi = localStorage.getItem('DARKTRACE_API_URL');
+  if (cachedApi && cachedApi.trim() !== '') {
+    return cachedApi.replace(/\/$/, '');
+  }
+
+  // 3. Window variable override
+  if (window.DARKTRACE_API_URL) {
+    return window.DARKTRACE_API_URL.replace(/\/$/, '');
+  }
+
+  // 4. Automatic Environment Detection
+  const isLocal = window.location.hostname === '127.0.0.1' || 
+                  window.location.hostname === 'localhost' || 
+                  window.location.hostname === '';
+  return isLocal ? 'http://127.0.0.1:8000' : 'https://darktrace-api.onrender.com';
+}
+
+const API = resolveApiUrl();
+console.log(`[Dark Trace AI] Connecting to backend: ${API}`);
 let analyses = 0, history = [];
 
 /* ═══════════════════════════════════════════════════════════ */
