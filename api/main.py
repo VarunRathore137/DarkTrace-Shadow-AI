@@ -1,21 +1,18 @@
+import os
+import sys
+import time
+import platform
+import random
+from pathlib import Path
+from typing import List, Optional, Dict, Any
+
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
 import joblib
 import pandas as pd
-import shap
-import sys
 import numpy as np
-from pathlib import Path
-import chromadb
-from sentence_transformers import SentenceTransformer
 import networkx as nx
-import random
-import time
-import platform
-import os
-import psutil
 
 # Add parent directory to path to import create_final_model
 ROOT_DIR = Path(__file__).parent.parent
@@ -45,45 +42,69 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 1. Load ML Artifacts
+# 1. Load ML Artifacts (Lightweight: XGBoost + Dictionaries ~20MB RAM)
 artifacts_dir = ROOT_DIR / "artifacts"
 try:
-    # Use the XGBoost pipeline — correctly predicts high/low risk
     xgb_pipeline = joblib.load(artifacts_dir / "xgboost_pipeline.joblib")
     preprocessor = joblib.load(artifacts_dir / "xgboost_preprocessor.joblib")
     classifier = xgb_pipeline.named_steps['classifier']
-    scaler = None  # XGBoost pipeline has no separate scaler step
+    scaler = None
     
     emoji_dict = pd.read_csv(ROOT_DIR / "drug_emoji_dictionary.csv")
     slang_dict = pd.read_csv(ROOT_DIR / "drug_slang_dictionary.csv")
-    print(f"OK: [{ENV.upper()}] ML Models and dictionaries loaded successfully.")
-    
-    try:
-        explainer = shap.TreeExplainer(classifier)
-    except Exception as e:
-        print(f"WARN: Could not initialize SHAP explainer: {e}")
-        explainer = None
+    print(f"OK: [{ENV.upper()}] XGBoost model & dictionaries loaded successfully.")
 except Exception as e:
     print(f"ERROR: loading ML models or dictionaries: {e}")
     xgb_pipeline = None
+    preprocessor = None
+    classifier = None
 
-# 2. Load RAG Dependencies
-chroma_dir_env = os.getenv("CHROMA_DATA_DIR", str(ROOT_DIR / "chroma_data"))
-try:
-    print("Loading SentenceTransformer (all-MiniLM-L6-v2)...")
-    embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
-    chroma_client = chromadb.PersistentClient(path=str(chroma_dir_env))
-    try:
-        chroma_collection = chroma_client.get_collection(name="drug_conversations")
-        print("OK: ChromaDB and SentenceTransformer loaded successfully.")
-    except Exception:
-        print(f"WARN: Chroma collection 'drug_conversations' not found in {chroma_dir_env}.")
-        chroma_collection = None
-except Exception as e:
-    print(f"ERROR: loading RAG components: {e}")
-    embedding_model = None
-    chroma_client = None
-    chroma_collection = None
+# 2. Lazy Initializer for SHAP Explainer (Loaded only on-demand when explain=True)
+_explainer = None
+_shap_initialized = False
+
+def get_shap_explainer():
+    global _explainer, _shap_initialized
+    if not _shap_initialized:
+        _shap_initialized = True
+        try:
+            import shap
+            if classifier is not None:
+                _explainer = shap.TreeExplainer(classifier)
+                print("OK: SHAP TreeExplainer initialized on-demand.")
+        except Exception as e:
+            print(f"WARN: Could not initialize SHAP explainer: {e}")
+            _explainer = None
+    return _explainer
+
+# 3. Lazy Initializer for RAG & ChromaDB (Loaded only when semantic search is called)
+_embedding_model = None
+_chroma_collection = None
+_rag_initialized = False
+
+def get_rag_components():
+    global _embedding_model, _chroma_collection, _rag_initialized
+    if not _rag_initialized:
+        _rag_initialized = True
+        try:
+            print("Initializing SentenceTransformer & ChromaDB on-demand...")
+            from sentence_transformers import SentenceTransformer
+            import chromadb
+
+            chroma_dir_env = os.getenv("CHROMA_DATA_DIR", str(ROOT_DIR / "chroma_data"))
+            _embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+            chroma_client = chromadb.PersistentClient(path=str(chroma_dir_env))
+            try:
+                _chroma_collection = chroma_client.get_collection(name="drug_conversations")
+                print("OK: ChromaDB collection loaded successfully.")
+            except Exception:
+                print(f"WARN: Chroma collection 'drug_conversations' not found in {chroma_dir_env}.")
+                _chroma_collection = None
+        except Exception as e:
+            print(f"ERROR: loading RAG components: {e}")
+            _embedding_model = None
+            _chroma_collection = None
+    return _embedding_model, _chroma_collection
 
 class MessageInput(BaseModel):
     message: str
@@ -149,47 +170,51 @@ def predict(input_data: MessageInput, explain: bool = Query(False, description="
     }
     
     if explain:
-        try:
-            X_transformed = preprocessor.transform(X)
-            if hasattr(X_transformed, "toarray"):
-                X_transformed = X_transformed.toarray()
+        explainer = get_shap_explainer()
+        if explainer is None:
+            response["shap_error"] = "SHAP explainer not available in memory-constrained environment."
+        else:
+            try:
+                X_transformed = preprocessor.transform(X)
+                if hasattr(X_transformed, "toarray"):
+                    X_transformed = X_transformed.toarray()
+                    
+                shap_values = explainer.shap_values(X_transformed)
                 
-            shap_values = explainer.shap_values(X_transformed)
-            
-            # XGBoost TreeExplainer returns shape (n_samples, n_features)
-            # For multi-output it may return list — always take class-1 values
-            if isinstance(shap_values, list):
-                # list of [class0_array, class1_array]
-                shap_array = np.array(shap_values[1]).flatten().tolist()
-            elif hasattr(shap_values, "shape") and len(shap_values.shape) == 3:
-                # shape (n_samples, n_features, n_classes) — take class 1
-                shap_array = shap_values[0, :, 1].tolist()
-            else:
-                # shape (n_samples, n_features) — take first sample
-                shap_array = shap_values[0].tolist()
-            
-            # Ensure every element is a plain float (guards against nested lists)
-            shap_array = [float(v) if not isinstance(v, (list, np.ndarray)) else float(np.array(v).item()) for v in shap_array]
+                # XGBoost TreeExplainer returns shape (n_samples, n_features)
+                # For multi-output it may return list — always take class-1 values
+                if isinstance(shap_values, list):
+                    # list of [class0_array, class1_array]
+                    shap_array = np.array(shap_values[1]).flatten().tolist()
+                elif hasattr(shap_values, "shape") and len(shap_values.shape) == 3:
+                    # shape (n_samples, n_features, n_classes) — take class 1
+                    shap_array = shap_values[0, :, 1].tolist()
+                else:
+                    # shape (n_samples, n_features) — take first sample
+                    shap_array = shap_values[0].tolist()
                 
-            feature_names_out = preprocessor.get_feature_names_out()
-            shap_dict = {name: val for name, val in zip(feature_names_out, shap_array)}
-            
-            frontend_shap_array = []
-            for key in features_df.columns:
-                shap_val = float(shap_dict.get(f"features__{key}", 0.0))
-                frontend_shap_array.append(shap_val)
+                # Ensure every element is a plain float (guards against nested lists)
+                shap_array = [float(v) if not isinstance(v, (list, np.ndarray)) else float(np.array(v).item()) for v in shap_array]
+                    
+                feature_names_out = preprocessor.get_feature_names_out()
+                shap_dict = {name: val for name, val in zip(feature_names_out, shap_array)}
                 
-            response["shap_values"] = frontend_shap_array
-            
-            base_value = explainer.expected_value
-            if isinstance(base_value, (list, np.ndarray)):
-                base_value = float(np.array(base_value).flatten()[0])
-            else:
-                base_value = float(base_value)
+                frontend_shap_array = []
+                for key in features_df.columns:
+                    shap_val = float(shap_dict.get(f"features__{key}", 0.0))
+                    frontend_shap_array.append(shap_val)
+                    
+                response["shap_values"] = frontend_shap_array
                 
-            response["shap_base_value"] = base_value
-        except Exception as e:
-            response["shap_error"] = str(e)
+                base_value = explainer.expected_value
+                if isinstance(base_value, (list, np.ndarray)):
+                    base_value = float(np.array(base_value).flatten()[0])
+                else:
+                    base_value = float(base_value)
+                    
+                response["shap_base_value"] = base_value
+            except Exception as e:
+                response["shap_error"] = str(e)
     
     return response
 
@@ -215,6 +240,7 @@ def batch_predict(input_data: BatchMessageInput):
 
 @app.post("/semantic_search")
 def semantic_search(input_data: SemanticSearchInput):
+    embedding_model, chroma_collection = get_rag_components()
     if chroma_collection is None or embedding_model is None:
         raise HTTPException(status_code=503, detail="ChromaDB or embedding model not loaded.")
 

@@ -22,3 +22,13 @@ services:
         value: "*"
       - key: CHROMA_DATA_DIR
         value: ./chroma_data
+      - key: OMP_NUM_THREADS
+        value: "1"
+      - key: MKL_NUM_THREADS
+        value: "1"
+      - key: OPENBLAS_NUM_THREADS
+        value: "1"
+      - key: TOKENIZERS_PARALLELISM
+        value: "false"
+      - key: MPLCONFIGDIR
+        value: "/tmp/matplotlib"
